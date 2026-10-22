@@ -8,12 +8,16 @@ test('repeated start and registration show appropriate messages and retain regis
   await bot(message('/start recruitment'));
   assert.equal(store.stats().unconfirmed, 1);
   assert.match(calls.at(-1).payload.text, /не согласие на участие/);
-  assert.equal(calls.at(-1).payload.reply_markup.inline_keyboard[0][0].callback_data, 'register');
-  await bot(callback());
+  assert.deepEqual(calls.at(-1).payload.reply_markup, {
+    keyboard: [[{ text: 'Зарегистрироваться', style: 'success' }]],
+    resize_keyboard: true,
+    one_time_keyboard: true,
+  });
+  await bot(message('Зарегистрироваться'));
   const registered = store.get(42).registered_at;
-  assert.equal(calls.at(-2).method, 'answerCallbackQuery');
   assert.match(calls.at(-1).payload.text, /Вы зарегистрированы/);
-  await bot(callback());
+  assert.deepEqual(calls.at(-1).payload.reply_markup, { remove_keyboard: true });
+  await bot(message('Зарегистрироваться'));
   await bot(message());
   assert.equal(store.get(42).registered_at, registered);
   assert.deepEqual(store.stats(), { total: 1, registered: 1, unconfirmed: 0 });
@@ -24,6 +28,9 @@ test('only /start creates participants, including for administrators', async (t)
   const { bot, store, calls } = fixture(t);
   await bot(callback());
   assert.match(calls.at(-1).payload.text, /Сначала отправьте/);
+  await bot(message('Зарегистрироваться'));
+  assert.match(calls.at(-1).payload.text, /Сначала отправьте/);
+  assert.deepEqual(calls.at(-1).payload.reply_markup, { remove_keyboard: true });
   await bot(message('/help'));
   await bot(message('случайный текст'));
   await bot(message('/stats', user(9001)));
