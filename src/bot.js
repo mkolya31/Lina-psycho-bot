@@ -2,9 +2,13 @@ import { messages } from './messages.js';
 import { TelegramApiError } from './telegram.js';
 
 const PAGE_SIZE = 5;
-const registrationKeyboard = { inline_keyboard: [[{
-  text: 'Зарегистрироваться', callback_data: 'register', style: 'success',
-}]] };
+const registrationText = 'Зарегистрироваться';
+const registrationKeyboard = {
+  keyboard: [[{ text: registrationText, style: 'success' }]],
+  resize_keyboard: true,
+  one_time_keyboard: true,
+};
+const removeKeyboard = { remove_keyboard: true };
 const isUser = (user) => user && Number.isSafeInteger(user.id) && user.id > 0
   && user.is_bot === false && typeof user.first_name === 'string'
   && (user.last_name == null || typeof user.last_name === 'string')
@@ -57,7 +61,7 @@ export function createBot({ store, telegram, adminIds, timeZone = 'Europe/Moscow
       if (callback.data === 'register') {
         const person = store.register(user, message.chat.id);
         await answer(callback.id, person ? 'Регистрация подтверждена' : 'Отправьте /start');
-        await send(message.chat.id, person ? messages.registered : messages.startFirst);
+        await send(message.chat.id, person ? messages.registered : messages.startFirst, removeKeyboard);
       } else if (typeof callback.data === 'string' && /^participants:[1-9]\d{0,8}$/.test(callback.data)) {
         if (!adminIds.has(user.id)) return answer(callback.id, messages.forbidden);
         await answer(callback.id);
@@ -71,6 +75,10 @@ export function createBot({ store, telegram, adminIds, timeZone = 'Europe/Moscow
     const message = update.message;
     if (!message || !isPrivate(message.from, message.chat) || typeof message.text !== 'string') return;
     const { from: user, chat } = message;
+    if (message.text.trim() === registrationText) {
+      const person = store.register(user, chat.id);
+      return send(chat.id, person ? messages.registered : messages.startFirst, removeKeyboard);
+    }
     const match = /^\/(start|stats|participants|help)(?:@[A-Za-z0-9_]+)?(?:\s+([\s\S]*))?$/.exec(message.text.trim());
     if (!match) return send(chat.id, messages.help);
     const [, command, argument] = match;
