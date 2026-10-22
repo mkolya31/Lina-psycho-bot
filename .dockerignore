@@ -1,0 +1,10 @@
+# Allow only application sources into the build context, never .env or SQLite.
+**
+!Dockerfile
+!.dockerignore
+!package.json
+!LICENSE
+!src/
+!src/**
+!scripts/
+!scripts/**

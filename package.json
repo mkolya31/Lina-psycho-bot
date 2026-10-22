@@ -1,0 +1,15 @@
+{
+  "name": "lina-psycho-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Telegram-бот для предварительного набора участников исследования",
+  "type": "module",
+  "engines": { "node": ">=24.14.1 <25" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
+    "test": "node --test test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage test/*.test.js",
+    "webhook:set": "node --env-file-if-exists=.env scripts/set-webhook.js"
+  },
+  "license": "MIT"
+}
