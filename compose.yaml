@@ -1,0 +1,40 @@
+name: lina-psycho-bot
+
+services:
+  bot:
+    build:
+      context: .
+    image: lina-psycho-bot:local
+    init: true
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      BOT_TOKEN: ${BOT_TOKEN:?Set BOT_TOKEN in .env}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET:?Set WEBHOOK_SECRET in .env}
+      ADMIN_IDS: ${ADMIN_IDS:?Set ADMIN_IDS in .env}
+      DISPLAY_TIMEZONE: ${DISPLAY_TIMEZONE:-Europe/Moscow}
+      WEBHOOK_URL: ${WEBHOOK_URL:-https://global.kolyach.me/telegram/webhook}
+      HOST: 0.0.0.0
+      PORT: "3000"
+      DB_PATH: /data/participants.sqlite
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    volumes:
+      - bot-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  bot-data:
+    name: lina-psycho-bot-data
